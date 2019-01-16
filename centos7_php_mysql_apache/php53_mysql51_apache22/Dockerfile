@@ -23,6 +23,19 @@ RUN cd /soft && tar xvf httpd-2.2.34.tar.bz2 && cd httpd-2.2.34 && ./configure -
 make -j4 && make install && cp /usr/local/httpd2.2/bin/apachectl /etc/init.d/httpd && cd .. rm -rf httpd-2.2.34 && rm -rf /usr/local/httpd2.2/man && \
 rm -rf /usr/local/httpd2.2/manual
 
+#build php
+RUN cd /soft && tar xvf php-5.3.29.tar.bz2 && cd php-5.3.29 && \
+yum install perl libxml2-devel openssl-devel libcurl-devel libjpeg-devel libpng-devel freetype-devel -y && \
+sed -i 's#/replace/with/path/to/perl/interpreter#/usr/bin/perl#' /usr/local/httpd2.2/bin/apxs && \
+./configure --prefix=/usr/local/php --with-apxs2=/usr/local/httpd2.2/bin/apxs --with-openssl --with-libxml-dir --with-zlib --with-curl --enable-exif --with-pcre-dir \
+--with-gd --with-jpeg-dir --with-png-dir --with-freetype-dir --enable-gd-native-ttf --enable-gd-jis-conv --with-gettext --enable-mysqlnd \
+--with-mysql-sock=/tmp/mysql.sock --with-mysql=/usr/local/mysql --with-mysqli=/usr/local/mysql/bin/mysql_config --enable-zip --with-iconv-dir && \
+make -j4 && make install && cp php.ini-production /usr/local/php/lib/php.ini && cd .. && rm -rf php-5.3.29 && \
+sed -i 's/DirectoryIndex index.html/DirectoryIndex index.html index.php/' /usr/local/httpd2.2/conf/httpd.conf && \
+sed -i '/#AddHandler cgi-script .cgi/a\AddType application/x-httpd-php .php' /usr/local/httpd2.2/conf/httpd.conf && \
+/etc/init.d/httpd restart && echo -e "<?php \nphpinfo();" > /usr/local/httpd2.2/htdocs/phpinfo.php && chmod +x /usr/local/httpd2.2/htdocs/phpinfo.php && \
+yum clean all && rm -rf /var/cache/yum
+
 EXPOSE 80
 
 CMD ["/etc/init.d/httpd", "start"]
