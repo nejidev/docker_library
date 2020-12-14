@@ -1,4 +1,4 @@
-FROM centos:latest
+FROM centos:7
 LABEL maintainer docker_user<nejidev@yahoo.co.jp>
 
 ENV MYSQL_ROOT_PASSWORD 123456
